@@ -1,0 +1,4 @@
+source;share/snn_aloha/local_setup.bash
+source;share/snn_aloha/local_setup.dsv
+source;share/snn_aloha/local_setup.sh
+source;share/snn_aloha/local_setup.zsh

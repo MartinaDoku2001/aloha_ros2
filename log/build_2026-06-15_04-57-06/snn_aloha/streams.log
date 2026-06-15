@@ -1,0 +1,128 @@
+[0.016s] Invoking command in '/workspace/aloha_mujoco_project/snn_aloha/build/snn_aloha': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/root/interbotix_ws/install/aloha:/root/interbotix_ws/install/interbotix_xs_modules:/root/interbotix_ws/install/interbotix_perception_modules:/root/interbotix_ws/install/interbotix_common_modules:/opt/ros/humble /usr/bin/cmake /workspace/aloha_mujoco_project/snn_aloha -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha
+[0.077s] -- The C compiler identification is GNU 11.4.0
+[0.132s] -- The CXX compiler identification is GNU 11.4.0
+[0.139s] -- Detecting C compiler ABI info
+[0.211s] -- Detecting C compiler ABI info - done
+[0.217s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.217s] -- Detecting C compile features
+[0.217s] -- Detecting C compile features - done
+[0.220s] -- Detecting CXX compiler ABI info
+[0.315s] -- Detecting CXX compiler ABI info - done
+[0.321s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.322s] -- Detecting CXX compile features
+[0.322s] -- Detecting CXX compile features - done
+[0.332s] -- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.526s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.600s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.729s] -- Found interbotix_xs_msgs: 0.0.0 (/root/interbotix_ws/install/interbotix_xs_msgs/share/interbotix_xs_msgs/cmake)
+[0.834s] -- Found rosidl_generator_c: 3.1.8 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[0.852s] -- Found rosidl_adapter: 3.1.8 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[0.875s] -- Found rosidl_generator_cpp: 3.1.8 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[0.901s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.938s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.032s] -- Found interbotix_xsarm_control: 0.0.0 (/root/interbotix_ws/install/interbotix_xsarm_control/share/interbotix_xsarm_control/cmake)
+[1.040s] -- Found rosbag2_cpp: 0.15.16 (/opt/ros/humble/share/rosbag2_cpp/cmake)
+[1.218s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[1.229s] -- Found rmw_fastrtps_cpp: 6.2.10 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[1.288s] -- Found TinyXML2 via Config file: TinyXML2_DIR-NOTFOUND
+[1.356s] -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[1.359s] -- Found TinyXML2 via Config file: TinyXML2_DIR-NOTFOUND
+[1.375s] -- Found FastRTPS: /opt/ros/humble/include  
+[1.378s] -- Found TinyXML2 via Config file: TinyXML2_DIR-NOTFOUND
+[1.386s] -- Found TinyXML2 via Config file: TinyXML2_DIR-NOTFOUND
+[1.399s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[1.428s] -- Looking for pthread.h
+[1.511s] -- Looking for pthread.h - found
+[1.512s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[1.595s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[1.596s] -- Found Threads: TRUE  
+[1.693s] -- Found tf2_ros: 0.25.20 (/opt/ros/humble/share/tf2_ros/cmake)
+[1.851s] -- Found rviz_common: 11.2.26 (/opt/ros/humble/share/rviz_common/cmake)
+[1.886s] -- Setting assimp_DIR to: '/opt/ros/humble/share/rviz_assimp_vendor/cmake/../../../opt/rviz_assimp_vendor/lib/cmake/assimp-4.1'
+[1.915s] -- Setting OGRE_DIR to: '/opt/ros/humble/share/rviz_ogre_vendor/cmake/../../../opt/rviz_ogre_vendor/lib/OGRE/cmake'
+[1.915s] -- Found OGRE
+[1.916s] --   static     : OFF
+[1.916s] --   components : HLMS;MeshLodGenerator;Overlay;Paging;Property;RTShaderSystem;Terrain;Volume
+[1.916s] --   plugins    : Plugin_BSPSceneManager;Plugin_OctreeSceneManager;Plugin_PCZSceneManager;Plugin_ParticleFX;RenderSystem_GL;RenderSystem_GL3Plus;Codec_STBI
+[1.916s] --   media      : /opt/ros/humble/opt/rviz_ogre_vendor/share/OGRE/Media
+[1.916s] -- OGRE_LIBRARIES: OgreHLMS;OgreMeshLodGenerator;OgreOverlay;OgrePaging;OgreProperty;OgreRTShaderSystem;OgreTerrain;OgreVolume;OgreMain
+[1.916s] -- OGRE_LIBRARY_DIRS: /opt/ros/humble/opt/rviz_ogre_vendor/lib
+[1.916s] -- OGRE_PLUGINS: Plugin_BSPSceneManager;Plugin_OctreeSceneManager;Plugin_PCZSceneManager;Plugin_ParticleFX;RenderSystem_GL;RenderSystem_GL3Plus;Codec_STBI
+[1.916s] -- OGRE_PLUGIN_DIR: /opt/ros/humble/opt/rviz_ogre_vendor/lib/OGRE
+[1.916s] -- rviz_ogre_vendor::OgreOverlay for IMPORTED_LOCATION_RELEASE: /opt/ros/humble/opt/rviz_ogre_vendor/lib/libOgreOverlay.so
+[1.916s] -- rviz_ogre_vendor::OgreOverlay for IMPORTED_LOCATION_DEBUG: /opt/ros/humble/opt/rviz_ogre_vendor/lib/libOgreOverlay.so
+[1.916s] -- rviz_ogre_vendor::OgreMain for IMPORTED_LOCATION_RELEASE: /opt/ros/humble/opt/rviz_ogre_vendor/lib/libOgreMain.so
+[1.916s] -- rviz_ogre_vendor::OgreMain for IMPORTED_LOCATION_DEBUG: /opt/ros/humble/opt/rviz_ogre_vendor/lib/libOgreMain.so
+[1.940s] -- Found ZLIB: /usr/lib/x86_64-linux-gnu/libz.so (found version "1.2.11") 
+[1.947s] -- Found OpenGL: /usr/lib/x86_64-linux-gnu/libOpenGL.so   
+[2.053s] -- Found X11: /usr/include   
+[2.053s] -- Looking for XOpenDisplay in /usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so
+[2.138s] -- Looking for XOpenDisplay in /usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so - found
+[2.139s] -- Looking for gethostbyname
+[2.217s] -- Looking for gethostbyname - found
+[2.218s] -- Looking for connect
+[2.295s] -- Looking for connect - found
+[2.295s] -- Looking for remove
+[2.373s] -- Looking for remove - found
+[2.373s] -- Looking for shmat
+[2.452s] -- Looking for shmat - found
+[2.452s] -- Looking for IceConnectionNumber in ICE
+[2.530s] -- Looking for IceConnectionNumber in ICE - found
+[2.676s] -- library: /usr/lib/x86_64-linux-gnu/libcurl.so
+[2.736s] -- Found Eigen3: TRUE (found version "3.4.0") 
+[2.736s] -- Ensuring Eigen3 include directory is part of orocos-kdl CMake target
+[2.785s] -- Found std_srvs: 4.9.1 (/opt/ros/humble/share/std_srvs/cmake)
+[2.806s] -- Found ament_lint_auto: 0.12.15 (/opt/ros/humble/share/ament_lint_auto/cmake)
+[2.878s] -- Configuring done
+[2.885s] -- Generating done
+[2.888s] -- Build files have been written to: /workspace/aloha_mujoco_project/snn_aloha/build/snn_aloha
+[2.902s] Invoked command in '/workspace/aloha_mujoco_project/snn_aloha/build/snn_aloha' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/root/interbotix_ws/install/aloha:/root/interbotix_ws/install/interbotix_xs_modules:/root/interbotix_ws/install/interbotix_perception_modules:/root/interbotix_ws/install/interbotix_common_modules:/opt/ros/humble /usr/bin/cmake /workspace/aloha_mujoco_project/snn_aloha -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha
+[2.906s] Invoking command in '/workspace/aloha_mujoco_project/snn_aloha/build/snn_aloha': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/root/interbotix_ws/install/aloha:/root/interbotix_ws/install/interbotix_xs_modules:/root/interbotix_ws/install/interbotix_perception_modules:/root/interbotix_ws/install/interbotix_common_modules:/opt/ros/humble /usr/bin/cmake --build /workspace/aloha_mujoco_project/snn_aloha/build/snn_aloha -- -j24 -l24
+[2.959s] Invoked command in '/workspace/aloha_mujoco_project/snn_aloha/build/snn_aloha' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/root/interbotix_ws/install/aloha:/root/interbotix_ws/install/interbotix_xs_modules:/root/interbotix_ws/install/interbotix_perception_modules:/root/interbotix_ws/install/interbotix_common_modules:/opt/ros/humble /usr/bin/cmake --build /workspace/aloha_mujoco_project/snn_aloha/build/snn_aloha -- -j24 -l24
+[2.972s] Invoking command in '/workspace/aloha_mujoco_project/snn_aloha/build/snn_aloha': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/root/interbotix_ws/install/aloha:/root/interbotix_ws/install/interbotix_xs_modules:/root/interbotix_ws/install/interbotix_perception_modules:/root/interbotix_ws/install/interbotix_common_modules:/opt/ros/humble /usr/bin/cmake --install /workspace/aloha_mujoco_project/snn_aloha/build/snn_aloha
+[2.982s] -- Install configuration: ""
+[2.982s] -- Execute custom install script
+[2.983s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/setup.py
+[2.990s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/constants.py
+[3.001s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/one_side_teleop.py
+[3.009s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/real_env.py
+[3.017s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/record_episodes.py
+[3.024s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/replay_episodes.py
+[3.031s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/robot_utils.py
+[3.040s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/sleep.py
+[3.048s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/visualize_episodes.py
+[3.055s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/realsense_publisher.py
+[3.063s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//launch/4arms_teleop.launch.py
+[3.073s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//config/master_modes_left.yaml
+[3.080s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//config/master_modes_right.yaml
+[3.088s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//config/puppet_modes_left.yaml
+[3.096s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//config/puppet_modes_right.yaml
+[3.104s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/Aloha cam wrist mount v13.stl
+[3.114s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/Gravity compensator clip, elbow mount.stl
+[3.121s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/Gravity compensator clip, wrist mount.stl
+[3.129s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/RSd405 2020 Overhead Cam Mount v3.stl
+[3.136s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/RSd405 2020 Worms-eye Cam Mount v3.stl
+[3.146s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/Shim_rotor_v1.STL
+[3.153s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/W-shim_rotor_v1.STL
+[3.162s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/aloha_gripper_assembly.pdf
+[3.172s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/viperx_gripper_stl.zip
+[3.179s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/viperx_joint1_adapter.zip
+[3.187s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/widowx_gripper_std.zip
+[3.194s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/workcell_v2/Aloha workcell v2.stl
+[3.202s] -- Up-to-date symlink: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/launch/4arms_teleop.launch.py
+[3.202s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/ament_index/resource_index/package_run_dependencies/snn_aloha
+[3.211s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/ament_index/resource_index/parent_prefix_path/snn_aloha
+[3.219s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/environment/ament_prefix_path.sh
+[3.227s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/environment/ament_prefix_path.dsv
+[3.235s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/environment/path.sh
+[3.245s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/environment/path.dsv
+[3.254s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/local_setup.bash
+[3.262s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/local_setup.sh
+[3.270s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/local_setup.zsh
+[3.279s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/local_setup.dsv
+[3.288s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/package.dsv
+[3.296s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/ament_index/resource_index/packages/snn_aloha
+[3.304s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/cmake/snn_alohaConfig.cmake
+[3.313s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/cmake/snn_alohaConfig-version.cmake
+[3.321s] -- Symlinking: /workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/package.xml
+[3.331s] Invoked command in '/workspace/aloha_mujoco_project/snn_aloha/build/snn_aloha' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/root/interbotix_ws/install/aloha:/root/interbotix_ws/install/interbotix_xs_modules:/root/interbotix_ws/install/interbotix_perception_modules:/root/interbotix_ws/install/interbotix_common_modules:/opt/ros/humble /usr/bin/cmake --install /workspace/aloha_mujoco_project/snn_aloha/build/snn_aloha

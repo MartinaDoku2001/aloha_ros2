@@ -1,0 +1,43 @@
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/setup.py
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/constants.py
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/one_side_teleop.py
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/real_env.py
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/record_episodes.py
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/replay_episodes.py
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/robot_utils.py
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/sleep.py
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/visualize_episodes.py
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/lib/snn_aloha/realsense_publisher.py
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//launch/4arms_teleop.launch.py
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//config/master_modes_left.yaml
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//config/master_modes_right.yaml
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//config/puppet_modes_left.yaml
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//config/puppet_modes_right.yaml
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/Aloha cam wrist mount v13.stl
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/Gravity compensator clip, elbow mount.stl
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/Gravity compensator clip, wrist mount.stl
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/RSd405 2020 Overhead Cam Mount v3.stl
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/RSd405 2020 Worms-eye Cam Mount v3.stl
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/Shim_rotor_v1.STL
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/W-shim_rotor_v1.STL
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/aloha_gripper_assembly.pdf
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/viperx_gripper_stl.zip
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/viperx_joint1_adapter.zip
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/widowx_gripper_std.zip
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha//aloha2/workcell_v2/Aloha workcell v2.stl
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/launch/4arms_teleop.launch.py
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/ament_index/resource_index/package_run_dependencies/snn_aloha
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/ament_index/resource_index/parent_prefix_path/snn_aloha
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/environment/ament_prefix_path.sh
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/environment/ament_prefix_path.dsv
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/environment/path.sh
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/environment/path.dsv
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/local_setup.bash
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/local_setup.sh
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/local_setup.zsh
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/local_setup.dsv
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/package.dsv
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/ament_index/resource_index/packages/snn_aloha
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/cmake/snn_alohaConfig.cmake
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/cmake/snn_alohaConfig-version.cmake
+/workspace/aloha_mujoco_project/snn_aloha/install/snn_aloha/share/snn_aloha/package.xml

@@ -17,7 +17,7 @@ class RealsensePublisher(Node):
         self.bridge = CvBridge()
         
         v4l2_mapping = {
-            '0': 8,   
+            '0': 10,   
             '1': 6,   
             '2': 18,  
             '3': 26   
@@ -53,7 +53,7 @@ class RealsensePublisher(Node):
                     color_image = cv2.cvtColor(frame, cv2.COLOR_YUV2BGR_YUYV)
                 
                 # Convert the OpenCV frame matrix into an official ROS 2 Image Message
-                img_msg = self.bridge.cv2_to_imgmsg(color_image, encoding="bgr8")
+                img_msg = self.bridge.cv2_to_imgmsg(color_image, encoding="rgb8")
                 img_msg.header.frame_id = "camera_link"
                 img_msg.header.stamp = self.get_clock().now().to_msg()
                 

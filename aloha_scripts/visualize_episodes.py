@@ -55,7 +55,7 @@ def save_videos(video, dt, video_path=None):
             images = []
             for cam_name in cam_names:
                 image = image_dict[cam_name]
-                image = image[:, :, [2, 1, 0]] # swap B and R channel
+                #image = image[:, :, [0, 1, 2]] # B G Rs
                 images.append(image)
             images = np.concatenate(images, axis=1)
             out.write(images)
@@ -73,7 +73,7 @@ def save_videos(video, dt, video_path=None):
         out = cv2.VideoWriter(video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
         for t in range(n_frames):
             image = all_cam_videos[t]
-            image = image[:, :, [2, 1, 0]]  # swap B and R channel
+            #image = image[:, :, [2, 1, 0]]  # swap B and R channel
             out.write(image)
         out.release()
         print(f'Saved video to: {video_path}')
