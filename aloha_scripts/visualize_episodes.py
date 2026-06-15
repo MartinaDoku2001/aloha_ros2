@@ -17,7 +17,7 @@ def load_hdf5(dataset_dir, dataset_name):
     dataset_path = os.path.join(dataset_dir, dataset_name + '.hdf5')
     if not os.path.isfile(dataset_path):
         print(f'Dataset does not exist at \n{dataset_path}\n')
-        exit()
+        return None # Return None instead of exit() so the loop can skip missing files
 
     with h5py.File(dataset_path, 'r') as root:
         is_sim = root.attrs['sim']
@@ -33,15 +33,49 @@ def load_hdf5(dataset_dir, dataset_name):
 
 def main(args):
     dataset_dir = args['dataset_dir']
-    episode_idx = args['episode_idx']
-    dataset_name = f'episode_{episode_idx}'
+    episode_input = args['episode_idx']
 
-    qpos, qvel, effort, action, image_dict = load_hdf5(dataset_dir, dataset_name)
-    save_videos(image_dict, DT, video_path=os.path.join(dataset_dir, dataset_name + '_video.mp4'))
-    visualize_joints(qpos, action, plot_path=os.path.join(dataset_dir, dataset_name + '_qpos.png'))
-    visualize_single(effort, 'effort', plot_path=os.path.join(dataset_dir, dataset_name + '_effort.png'))
-    visualize_single(action - qpos, 'tracking_error', plot_path=os.path.join(dataset_dir, dataset_name + '_error.png'))
-    # visualize_timestamp(t_list, dataset_path) # TODO addn timestamp back
+    # --- PARSE THE INDEXES ---
+    episode_indexes = []
+    if episode_input is not None:
+        for item in episode_input:
+            # If the item contains a hyphen (e.g., "0-5"), treat it as a range
+            if '-' in item:
+                try:
+                    start, end = map(int, item.split('-'))
+                    episode_indexes.extend(range(start, end + 1))
+                except ValueError:
+                    print(f"Skipping invalid range format: {item}")
+            else:
+                # Treat it as a single integer item
+                try:
+                    episode_indexes.append(int(item))
+                except ValueError:
+                    print(f"Skipping invalid integer format: {item}")
+    else:
+        print("Please provide at least one index using --episode_idx")
+        return
+
+    print(f"Processing episode indexes: {episode_indexes}\n")
+
+    # --- ITERATE OVER ALL REQUESTED INDEXES ---
+    for episode_idx in episode_indexes:
+        dataset_name = f'episode_{episode_idx}'
+        print(f"========================================")
+        print(f"Processing: {dataset_name}")
+        print(f"========================================")
+
+        data = load_hdf5(dataset_dir, dataset_name)
+        if data is None:
+            continue # Skip to the next episode if this one doesn't exist
+            
+        qpos, qvel, effort, action, image_dict = data
+        
+        save_videos(image_dict, DT, video_path=os.path.join(dataset_dir, dataset_name + '_video.mp4'))
+        visualize_joints(qpos, action, plot_path=os.path.join(dataset_dir, dataset_name + '_qpos.png'))
+        visualize_single(effort, 'effort', plot_path=os.path.join(dataset_dir, dataset_name + '_effort.png'))
+        visualize_single(action - qpos, 'tracking_error', plot_path=os.path.join(dataset_dir, dataset_name + '_error.png'))
+        print(f"Finished {dataset_name}\n")
 
 
 def save_videos(video, dt, video_path=None):
@@ -55,7 +89,6 @@ def save_videos(video, dt, video_path=None):
             images = []
             for cam_name in cam_names:
                 image = image_dict[cam_name]
-                #image = image[:, :, [0, 1, 2]] # B G Rs
                 images.append(image)
             images = np.concatenate(images, axis=1)
             out.write(images)
@@ -66,14 +99,13 @@ def save_videos(video, dt, video_path=None):
         all_cam_videos = []
         for cam_name in cam_names:
             all_cam_videos.append(video[cam_name])
-        all_cam_videos = np.concatenate(all_cam_videos, axis=2) # width dimension
+        all_cam_videos = np.concatenate(all_cam_videos, axis=2)
 
         n_frames, h, w, _ = all_cam_videos.shape
         fps = int(1 / dt)
         out = cv2.VideoWriter(video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
         for t in range(n_frames):
             image = all_cam_videos[t]
-            #image = image[:, :, [2, 1, 0]]  # swap B and R channel
             out.write(image)
         out.release()
         print(f'Saved video to: {video_path}')
@@ -85,14 +117,13 @@ def visualize_joints(qpos_list, command_list, plot_path=None, ylim=None, label_o
     else:
         label1, label2 = 'State', 'Command'
 
-    qpos = np.array(qpos_list) # ts, dim
+    qpos = np.array(qpos_list)
     command = np.array(command_list)
     num_ts, num_dim = qpos.shape
     h, w = 2, num_dim
     num_figs = num_dim
     fig, axs = plt.subplots(num_figs, 1, figsize=(w, h * num_figs))
 
-    # plot joint state
     all_names = [name + '_left' for name in STATE_NAMES] + [name + '_right' for name in STATE_NAMES]
     for dim_idx in range(num_dim):
         ax = axs[dim_idx]
@@ -100,7 +131,6 @@ def visualize_joints(qpos_list, command_list, plot_path=None, ylim=None, label_o
         ax.set_title(f'Joint {dim_idx}: {all_names[dim_idx]}')
         ax.legend()
 
-    # plot arm command
     for dim_idx in range(num_dim):
         ax = axs[dim_idx]
         ax.plot(command[:, dim_idx], label=label2)
@@ -117,13 +147,12 @@ def visualize_joints(qpos_list, command_list, plot_path=None, ylim=None, label_o
     plt.close()
 
 def visualize_single(efforts_list, label, plot_path=None, ylim=None, label_overwrite=None):
-    efforts = np.array(efforts_list) # ts, dim
+    efforts = np.array(efforts_list)
     num_ts, num_dim = efforts.shape
     h, w = 2, num_dim
     num_figs = num_dim
     fig, axs = plt.subplots(num_figs, 1, figsize=(w, h * num_figs))
 
-    # plot joint state
     all_names = [name + '_left' for name in STATE_NAMES] + [name + '_right' for name in STATE_NAMES]
     for dim_idx in range(num_dim):
         ax = axs[dim_idx]
@@ -146,7 +175,6 @@ def visualize_timestamp(t_list, dataset_path):
     plot_path = dataset_path.replace('.pkl', '_timestamp.png')
     h, w = 4, 10
     fig, axs = plt.subplots(2, 1, figsize=(w, h*2))
-    # process t_list
     t_float = []
     for secs, nsecs in t_list:
         t_float.append(secs + nsecs * 10E-10)
@@ -172,5 +200,7 @@ def visualize_timestamp(t_list, dataset_path):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset_dir', action='store', type=str, help='Dataset dir.', required=True)
-    parser.add_argument('--episode_idx', action='store', type=int, help='Episode index.', required=False)
+    
+    # Changed type to str and added nargs='+' to catch multiple list inputs or string ranges
+    parser.add_argument('--episode_idx', action='store', type=str, nargs='+', help='Episode index, discrete list, or range like 0-5.', required=True)
     main(vars(parser.parse_args()))

@@ -9,6 +9,9 @@ import rclpy
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 
+# Import pynput for non-blocking keyboard listening
+from pynput import keyboard
+
 from constants import DT, START_ARM_POSE, TASK_CONFIGS
 from constants import MASTER_GRIPPER_JOINT_MID, PUPPET_GRIPPER_JOINT_CLOSE, PUPPET_GRIPPER_JOINT_OPEN
 from robot_utils import Recorder, ImageRecorder, get_arm_gripper_positions
@@ -22,16 +25,27 @@ from interbotix_common_modules.common_robot.robot import (
     robot_startup
 )
 
+# Global flag to track early termination
+break_episode = False
+
+def on_press(key):
+    global break_episode
+    try:
+        # You can change 'q' to any key you prefer
+        if key.char == 'q':
+            print("\n[INFO] 'q' pressed! Ending episode early...")
+            break_episode = True
+    except AttributeError:
+        pass
+
 def opening_ceremony(master_bot_left, master_bot_right, puppet_bot_left, puppet_bot_right):
     """ Move all robots to a pose where it is easy to start demonstration """
-    # Setup Left side
     puppet_bot_left.core.robot_reboot_motors("single", "gripper", True)
     puppet_bot_left.core.robot_set_operating_modes("group", "arm", "position")
     puppet_bot_left.core.robot_set_operating_modes("single", "gripper", "current_based_position")
     master_bot_left.core.robot_set_operating_modes("group", "arm", "position")
     master_bot_left.core.robot_set_operating_modes("single", "gripper", "position")
     
-    # Setup Right side
     puppet_bot_right.core.robot_reboot_motors("single", "gripper", True)
     puppet_bot_right.core.robot_set_operating_modes("group", "arm", "position")
     puppet_bot_right.core.robot_set_operating_modes("single", "gripper", "current_based_position")
@@ -43,13 +57,11 @@ def opening_ceremony(master_bot_left, master_bot_right, puppet_bot_left, puppet_
     torque_on(puppet_bot_right)
     torque_on(master_bot_right)
 
-    # Create the two distinct model profiles
     pose_no_flip = list(START_ARM_POSE[:6])
     pose_with_flip = list(START_ARM_POSE[:6])
     pose_with_flip[1] = -pose_with_flip[1]
     pose_with_flip[2] = -pose_with_flip[2]
     
-    # Masters get NO FLIP, Puppets get WITH FLIP
     move_arms(
         [master_bot_left, puppet_bot_left, master_bot_right, puppet_bot_right], 
         [pose_no_flip, pose_with_flip, pose_no_flip, pose_with_flip], 
@@ -62,7 +74,6 @@ def opening_ceremony(master_bot_left, master_bot_right, puppet_bot_left, puppet_
         move_time=0.5
     )
 
-    # Disable torque for BOTH master grippers to allow you to grab them comfortably
     master_bot_left.core.robot_torque_enable("single", "gripper", False)
     master_bot_right.core.robot_torque_enable("single", "gripper", False)
     
@@ -77,14 +88,15 @@ def opening_ceremony(master_bot_left, master_bot_right, puppet_bot_left, puppet_
             pressed = True
         time.sleep(DT)
         
-    # Disable torque for BOTH entire master arms so you can freely teleoperate
     torque_off(master_bot_left)
     torque_off(master_bot_right)
     print(f'\nStarted!')
 
 def capture_one_episode(dt, max_timesteps, camera_names, dataset_dir, dataset_name, overwrite):
-    print(f'Dataset name: {dataset_name}')
+    global break_episode
+    break_episode = False # Reset flag for new episode
 
+    print(f'Dataset name: {dataset_name}')
     env = make_real_env(init_node=False, setup_robots=True)
 
     try:
@@ -94,7 +106,6 @@ def capture_one_episode(dt, max_timesteps, camera_names, dataset_dir, dataset_na
     if global_node is not None:
         robot_startup(global_node)
 
-    # Spin dual ALOHA recording nodes in the background
     recording_executor = MultiThreadedExecutor()
     if hasattr(env, 'recorder_left') and isinstance(env.recorder_left, Node):
         recording_executor.add_node(env.recorder_left)
@@ -124,9 +135,16 @@ def capture_one_episode(dt, max_timesteps, camera_names, dataset_dir, dataset_na
     actions = []
     actual_dt_history = []
     
+    # --- START KEYBOARD LISTENER ---
+    listener = keyboard.Listener(on_press=on_press)
+    listener.start()
+    print(">> Press 'q' at any time to finish the episode early. <<")
+
     for t in tqdm(range(max_timesteps)):
+        if break_episode:
+            break  # Break out of the loop early
+
         t0 = time.time()
-        
         action = get_action(master_bot_left, master_bot_right)
         t1 = time.time()
         
@@ -141,6 +159,9 @@ def capture_one_episode(dt, max_timesteps, camera_names, dataset_dir, dataset_na
         if elapsed < dt:
             time.sleep(dt - elapsed)
 
+    # Stop keyboard listener
+    listener.stop()
+
     freq_mean = print_dt_diagnosis(actual_dt_history)
     if freq_mean < 42:
         print("Warning: Step frequency too low, episode might be unhealthy.")
@@ -153,6 +174,9 @@ def capture_one_episode(dt, max_timesteps, camera_names, dataset_dir, dataset_na
     }
     for cam_name in camera_names:
         data_dict[f'/observations/images/{cam_name}'] = []
+
+    # Count how many steps were actually recorded
+    actual_timesteps = len(actions)
 
     while actions:
         action = actions.pop(0)
@@ -170,17 +194,20 @@ def capture_one_episode(dt, max_timesteps, camera_names, dataset_dir, dataset_na
         root.attrs['sim'] = False
         obs = root.create_group('observations')
         image = obs.create_group('images')
+        
+        # CRITICAL FIX: Use 'actual_timesteps' instead of 'max_timesteps' 
+        # so HDF5 allocations match the shortened data array shapes.
         for cam_name in camera_names:
-            _ = image.create_dataset(cam_name, (max_timesteps, 480, 640, 3), dtype='uint8', chunks=(1, 480, 640, 3))
-        _ = obs.create_dataset('qpos', (max_timesteps, 14))
-        _ = obs.create_dataset('qvel', (max_timesteps, 14))
-        _ = obs.create_dataset('effort', (max_timesteps, 14))
-        _ = root.create_dataset('action', (max_timesteps, 14))
+            _ = image.create_dataset(cam_name, (actual_timesteps, 480, 640, 3), dtype='uint8', chunks=(1, 480, 640, 3))
+        _ = obs.create_dataset('qpos', (actual_timesteps, 14))
+        _ = obs.create_dataset('qvel', (actual_timesteps, 14))
+        _ = obs.create_dataset('effort', (actual_timesteps, 14))
+        _ = root.create_dataset('action', (actual_timesteps, 14))
 
         for name, array in data_dict.items():
             root[name][...] = array
             
-    print(f'Saving Complete: {time.time() - t0:.1f} secs')
+    print(f'Saving Complete ({actual_timesteps}/{max_timesteps} steps): {time.time() - t0:.1f} secs')
     return True
 
 def main(args):
