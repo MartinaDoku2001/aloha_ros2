@@ -1,3 +1,10 @@
+# Ignore heavy datasets
+dataset/
+
+# Ignore ROS2 / Colcon build artifacts
+aloha_scripts/build/
+aloha_scripts/install/
+aloha_scripts/log/
 .idea
 .DS_store
 /aloha.egg-info/

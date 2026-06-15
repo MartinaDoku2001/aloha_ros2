@@ -5,6 +5,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
+from launch.actions import TimerAction  # Ensure this import is at the top of the file!
 
 
 def generate_launch_description():
@@ -14,10 +15,10 @@ def generate_launch_description():
         DeclareLaunchArgument('robot_model_puppet', default_value='vx300s'),
         DeclareLaunchArgument('base_link_master', default_value='base_link'),
         DeclareLaunchArgument('base_link_puppet', default_value='base_link'),
-        DeclareLaunchArgument('master_modes_left', default_value=PathJoinSubstitution([FindPackageShare('aloha'), 'config', 'master_modes_left.yaml'])),
-        DeclareLaunchArgument('puppet_modes_left', default_value=PathJoinSubstitution([FindPackageShare('aloha'), 'config', 'puppet_modes_left.yaml'])),
-        DeclareLaunchArgument('master_modes_right', default_value=PathJoinSubstitution([FindPackageShare('aloha'), 'config', 'master_modes_right.yaml'])),
-        DeclareLaunchArgument('puppet_modes_right', default_value=PathJoinSubstitution([FindPackageShare('aloha'), 'config', 'puppet_modes_right.yaml'])),
+        DeclareLaunchArgument('master_modes_left', default_value=PathJoinSubstitution([FindPackageShare('snn_aloha'), 'config', 'master_modes_left.yaml'])),
+        DeclareLaunchArgument('puppet_modes_left', default_value=PathJoinSubstitution([FindPackageShare('snn_aloha'), 'config', 'puppet_modes_left.yaml'])),
+        DeclareLaunchArgument('master_modes_right', default_value=PathJoinSubstitution([FindPackageShare('snn_aloha'), 'config', 'master_modes_right.yaml'])),
+        DeclareLaunchArgument('puppet_modes_right', default_value=PathJoinSubstitution([FindPackageShare('snn_aloha'), 'config', 'puppet_modes_right.yaml'])),
         DeclareLaunchArgument('launch_driver', default_value='true'),
         DeclareLaunchArgument('use_sim', default_value='false'),
         DeclareLaunchArgument('robot_name_master_left', default_value='master_left'),
@@ -38,9 +39,9 @@ def generate_launch_description():
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([
                     PathJoinSubstitution([
-                    FindPackageShare('interbotix_xsarm_control'),
-                    'launch',
-                    'xsarm_control.launch.py'
+                        FindPackageShare('interbotix_xsarm_control'),
+                        'launch',
+                        'xsarm_control.launch.py'
                     ])
                 ]),
                 condition=IfCondition(LaunchConfiguration('launch_driver')),
@@ -84,94 +85,45 @@ def generate_launch_description():
         )
     ]
 
-    # USB camera nodes
-    # usb_cam_nodes = [
-    #     Node(
-    #         package='usb_cam',
-    #         executable='usb_cam_node',
-    #         name='usb_cam_high',
-    #         output='screen',
-    #         parameters=[{
-    #             'video_device': '/dev/CAM_HIGH',
-    #             'framerate': 60,
-    #             'image_width': 640,
-    #             'image_height': 480,
-    #             'pixel_format': 'yuyv',
-    #             'camera_frame_id': 'usb_cam',
-    #             'io_method': 'mmap',
-    #             'autofocus': False,
-    #             'focus': 5,
-    #             'autoexposure': True
-    #         }]
-    #     ),
-    #     Node(
-    #         package='usb_cam',
-    #         executable='usb_cam_node',
-    #         name='usb_cam_low',
-    #         output='screen',
-    #         parameters=[{
-    #             'video_device': '/dev/CAM_LOW',
-    #             'framerate': 60,
-    #             'image_width': 640,
-    #             'image_height': 480,
-    #             'pixel_format': 'yuyv',
-    #             'camera_frame_id': 'usb_cam',
-    #             'io_method': 'mmap',
-    #             'autofocus': False,
-    #             'focus': 35,
-    #             'autoexposure': True
-    #         }]
-    #     ),
-    #     Node(
-    #         package='usb_cam',
-    #         executable='usb_cam_node',
-    #         name='usb_cam_left_wrist',
-    #         output='screen',
-    #         parameters=[{
-    #             'video_device': '/dev/CAM_LEFT_WRIST',
-    #             'framerate': 60,
-    #             'image_width': 640,
-    #             'image_height': 480,
-    #             'pixel_format': 'yuyv',
-    #             'camera_frame_id': 'usb_cam',
-    #             'io_method': 'mmap',
-    #             'autofocus': False,
-    #             'focus': 40,
-    #             'autoexposure': True
-    #         }]
-    #     ),
-    #     Node(
-    #         package='usb_cam',
-    #         executable='usb_cam_node',
-    #         name='usb_cam_right_wrist',
-    #         output='screen',
-    #         parameters=[{
-    #             'video_device': '/dev/CAM_RIGHT_WRIST',
-    #             'framerate': 60,
-    #             'image_width': 640,
-    #             'image_height': 480,
-    #             'pixel_format': 'yuyv',
-    #             'camera_frame_id': 'usb_cam',
-    #             'io_method': 'mmap',
-    #             'autofocus': False,
-    #             'focus': 40,
-    #             'autoexposure': True
-    #         }]
-    #     )
-    # ]
+    # Realsense camera nodes 
+    camera_package = 'snn_aloha' 
+    
+    realsense_nodes = [
+        # Main realsense publisher
+        Node(
+            package=camera_package,
+            executable='realsense_publisher.py', 
+            name='realsense_publisher',
+            output='screen',
+            respawn=True
+        )
+    ]
 
-    # return LaunchDescription(declare_arguments + includes + transform_nodes + usb_cam_nodes)
-    return LaunchDescription(declare_arguments + includes + transform_nodes)
+    # Generate realsense_publisher_0 through realsense_publisher_3 dynamically
+   
 
+    # Ensure these imports exist at the very top of your file
+    # from launch.actions import TimerAction
+    # from launch_ros.actions import Node
 
-"""
-ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
-generate-parameter-library-py 0.3.8 requires pyyaml, which is not installed.
-generate-parameter-library-py 0.3.8 requires typeguard, which is not installed.
-black 24.10.0 requires click>=8.0.0, which is not installed.
-black 24.10.0 requires platformdirs>=2, which is not installed.
+    realsense_nodes = []
+    camera_package = 'snn_aloha'  # Double-check this matches your package name
 
-ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
-generate-parameter-library-py 0.3.8 requires typeguard, which is not installed.
-
-"""
+    for i in range(4):
+        camera_node = Node(
+            package=camera_package,
+            executable='realsense_publisher.py',  # Ensure .py matches your installation choice
+            name=f'realsense_publisher_{i}',
+            arguments=[str(i)],
+            output='screen',
+            respawn=True
+        )
+        
+        # Stagger the camera node execution to protect the USB bandwidth limits
+        staggered_camera = TimerAction(
+            period=float(i * 2.0),
+            actions=[camera_node]
+        )
+        
+        realsense_nodes.append(staggered_camera)
+    return LaunchDescription(declare_arguments + includes + transform_nodes + realsense_nodes)

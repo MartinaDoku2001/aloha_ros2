@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(aloha)
+project(snn_aloha)
 
 if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
@@ -37,6 +37,7 @@ install(
     aloha_scripts/robot_utils.py
     aloha_scripts/sleep.py
     aloha_scripts/visualize_episodes.py
+    aloha_scripts/realsense_publisher.py
   DESTINATION
     lib/${PROJECT_NAME}
 )
@@ -54,5 +55,9 @@ if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 ament_package()
