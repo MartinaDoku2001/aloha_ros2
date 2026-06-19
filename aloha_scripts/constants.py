@@ -17,7 +17,7 @@ TASK_CONFIGS = {
     'aloha_clutter': {
         'dataset_dir': DATA_DIR + '/aloha_clutter',
         'num_episodes': 85,
-        'episode_len': 1000,
+        'episode_len': 1400,
         'camera_names': ['camera_0', 'camera_1', 'camera_2', 'camera_3']
     },
 }
@@ -29,7 +29,7 @@ JOINT_NAMES = ["waist", "shoulder", "elbow", "forearm_roll", "wrist_angle", "wri
 START_ARM_POSE = [0, -0.96, 1.16, 0, -0.3, 0, 0.02239, -0.02239, 0, -0.96, 1.16, 0, -0.3, 0, 0.02239, -0.02239]
 
 
-# Left finger position limits (qpos[7]), right_finger = -1 * left_finger
+# Left finger position limits (qpos[7]), right_finger = -1 * left_finger 
 MASTER_GRIPPER_POSITION_OPEN = 0.02417
 MASTER_GRIPPER_POSITION_CLOSE = 0.01244
 PUPPET_GRIPPER_POSITION_OPEN = 0.05800
@@ -48,7 +48,7 @@ LEFT_PUPPET_GRIPPER_JOINT_SAFE_OPEN = 0.0721
 LEFT_PUPPET_GRIPPER_JOINT_SAFE_CLOSE = -1.3959
 
 RIGHT_MASTER_GRIPPER_JOINT_TELEOP_OPEN = 0.8023
-RIGHT_MASTER_GRIPPER_JOINT_TELEOP_CLOSE = -0.0844
+RIGHT_MASTER_GRIPPER_JOINT_TELEOP_CLOSE = -0.0644
 RIGHT_PUPPET_GRIPPER_JOINT_SAFE_OPEN = 0.1166
 RIGHT_PUPPET_GRIPPER_JOINT_SAFE_CLOSE = -1.3606
 
