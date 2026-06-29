@@ -28,6 +28,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 from pynput import keyboard
 
 # ── Import core/models so 'from act import ModernACTPolicy' resolves correctly
@@ -77,13 +78,20 @@ def load_policy(ckpt_dir: str, eval_ckpt: str | None) -> tuple:
 
 # ── Image preprocessing ───────────────────────────────────────────────────────
 def images_to_tensor(obs_images: dict, camera_names: list) -> torch.Tensor:
-    """Stack camera images into a (1, N_cams, C, H, W) float32 CUDA tensor."""
+    """Stack camera images into a (1, N_cams, C, 224, 224) float32 CUDA tensor."""
     imgs = []
     for cam in camera_names:
         img = obs_images[cam]                  # (H, W, C) uint8
         imgs.append(img.transpose(2, 0, 1).astype(np.float32) / 255.0)
     arr = np.stack(imgs, axis=0)               # (N_cams, C, H, W)
-    return torch.from_numpy(arr).float().cuda().unsqueeze(0)  # (1, N_cams, C, H, W)
+    t = torch.from_numpy(arr).float().cuda().unsqueeze(0)  # (1, N_cams, C, H, W)
+    if t.shape[-2:] != torch.Size([224, 224]):
+        _B, _N, _C, _H, _W = t.shape
+        t = F.interpolate(
+            t.view(_B * _N, _C, _H, _W), size=(224, 224),
+            mode='bilinear', align_corners=False
+        ).view(_B, _N, _C, 224, 224)
+    return t
 
 
 # ── Opening ceremony ──────────────────────────────────────────────────────────
