@@ -26,6 +26,8 @@ import time
 import threading
 from pathlib import Path
 
+import math
+
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -153,7 +155,13 @@ def _on_press(key):
 
 
 def run_one_episode(env, policy, stats, camera_names, episode_len,
-                    num_queries, temporal_agg, save_video):
+                    num_queries, temporal_agg, save_video,
+                    done_threshold: float = 0.9, done_patience: int = 5,
+                    done_min_steps: int = 50):
+    """
+    done_threshold : sigmoid(is_pad logit) must exceed this to count as done
+    done_patience  : how many consecutive done predictions before stopping
+    """
     global _break_episode
     _break_episode = False
 
@@ -171,6 +179,8 @@ def run_one_episode(env, policy, stats, camera_names, episode_len,
     video_frames = []
     dt_history   = []
     action_chunk = None
+    is_pad_chunk = None   # [1, num_queries, 1] raw logits from latest query
+    done_streak  = 0      # consecutive steps predicted as "done"
 
     listener = keyboard.Listener(on_press=_on_press)
     listener.start()
@@ -198,24 +208,41 @@ def run_one_episode(env, policy, stats, camera_names, episode_len,
 
             # ── Policy query ──────────────────────────────────────────────────
             if t % query_frequency == 0:
-                out = policy(qpos_t, curr_image)
+                out          = policy(qpos_t, curr_image)
                 action_chunk = out["action"] if isinstance(out, dict) else out
-                # shape: (1, num_queries, 14)
+                is_pad_chunk = out.get("is_pad") if isinstance(out, dict) else None
+                # shapes: action_chunk (1, num_queries, 14)
+                #         is_pad_chunk (1, num_queries, 1) raw logits
 
             if temporal_agg:
                 chunk_np = action_chunk[0, :, :14].cpu().numpy()
                 agg_buffer[t, t:t + num_queries] = chunk_np
                 raw_action = temporal_agg_action(agg_buffer, t)
+                # With temporal agg we query every step; step index in chunk = 0
+                pad_logit = is_pad_chunk[0, 0, 0].item() if is_pad_chunk is not None else -999
             else:
                 step_in_chunk = t % query_frequency
                 raw_action = action_chunk[0, step_in_chunk, :14].cpu().numpy()
+                pad_logit = is_pad_chunk[0, step_in_chunk, 0].item() if is_pad_chunk is not None else -999
+
+            # ── Episode-done detection ────────────────────────────────────────
+            pad_prob = 1.0 / (1.0 + math.exp(-pad_logit))  # sigmoid
+            if t >= done_min_steps and pad_prob > done_threshold:
+                done_streak += 1
+                if done_streak >= done_patience:
+                    print(f"\n  [t={t}] Episode-done signal ({done_streak} consecutive, "
+                          f"pad_prob={pad_prob:.2f}) — stopping early.")
+                    break
+            else:
+                done_streak = 0
 
             # ── Denormalize and apply ─────────────────────────────────────────
             action = raw_action * action_std[:14] + action_mean[:14]
 
             if t % 30 == 0:
                 print(f"  t={t:>4}  grip_L={action[6]:.4f}  grip_R={action[13]:.4f}"
-                      f"  shoulder_L={action[1]:.3f}  elbow_L={action[2]:.3f}")
+                      f"  shoulder_L={action[1]:.3f}  elbow_L={action[2]:.3f}"
+                      f"  pad_prob={pad_prob:.2f}")
 
             # env.step() takes 14-dim master-convention action and handles the
             # shoulder/elbow sign flip for the puppet bots internally.
@@ -295,6 +322,9 @@ def main(args):
                 env, policy, stats, camera_names,
                 episode_len, num_queries, temporal_agg,
                 save_video=args.save_video,
+                done_threshold=args.done_threshold,
+                done_patience=args.done_patience,
+                done_min_steps=args.done_min_steps,
             )
         except KeyboardInterrupt:
             print("\nEpisode interrupted.")
@@ -339,10 +369,16 @@ def parse_args():
     p.add_argument("--num_rollouts", type=int, default=5)
     p.add_argument("--eval_ckpt",    default=None,
                    help="Checkpoint filename (default: policy_last.ckpt)")
-    p.add_argument("--temporal_agg", action="store_true")
-    p.add_argument("--episode_len",  type=int, default=None)
-    p.add_argument("--save_video",   action="store_true")
-    p.add_argument("--video_dir",    default="./eval_videos")
+    p.add_argument("--temporal_agg",   action="store_true")
+    p.add_argument("--episode_len",    type=int,   default=None)
+    p.add_argument("--save_video",     action="store_true")
+    p.add_argument("--video_dir",      default="./eval_videos")
+    p.add_argument("--done_threshold", type=float, default=0.9,
+                   help="sigmoid(is_pad logit) threshold to declare episode done")
+    p.add_argument("--done_patience",  type=int,   default=5,
+                   help="Consecutive done-predictions required before stopping early")
+    p.add_argument("--done_min_steps", type=int,   default=50,
+                   help="Minimum steps before early termination is allowed")
     return p.parse_args()
 
 
