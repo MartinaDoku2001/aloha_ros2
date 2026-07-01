@@ -10,3 +10,4 @@ aloha_scripts/log/
 /aloha.egg-info/
 /aloha_scripts/.idea/
 **/__pycache__**
+eval_videos/

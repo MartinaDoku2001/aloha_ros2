@@ -204,8 +204,20 @@ def run_one_episode(env, policy, stats, camera_names, episode_len,
             curr_image = images_to_tensor(obs['images'], camera_names)
 
             if save_video:
-                video_frames.append(obs['images'][camera_names[0]].copy())
-
+                # Grab all cameras, convert BGR→RGB, tile into a grid
+                cam_imgs = []
+                for cam in camera_names:
+                    img = obs['images'][cam].copy()
+                    img = img[:, :, ::-1]  # BGR → RGB
+                    cam_imgs.append(img)
+                # Tile: 2×2 grid if 4 cameras, horizontal strip otherwise
+                if len(cam_imgs) == 4:
+                    top = np.concatenate(cam_imgs[:2], axis=1)
+                    bot = np.concatenate(cam_imgs[2:], axis=1)
+                    tiled = np.concatenate([top, bot], axis=0)
+                else:
+                    tiled = np.concatenate(cam_imgs, axis=1)
+                video_frames.append(tiled)
             # ── Policy query ──────────────────────────────────────────────────
             if t % query_frequency == 0:
                 out          = policy(qpos_t, curr_image)
@@ -369,6 +381,10 @@ def parse_args():
     p.add_argument("--num_rollouts", type=int, default=5)
     p.add_argument("--eval_ckpt",    default=None,
                    help="Checkpoint filename (default: policy_last.ckpt)")
+    p.add_argument("--temporal_agg", action="store_true")
+    p.add_argument("--episode_len",  type=int, default=None)
+    p.add_argument("--save_video",   action="store_true")
+    p.add_argument("--video_dir", default="/workspace/aloha_mujoco_project/snn_aloha/eval_videos")
     p.add_argument("--temporal_agg",   action="store_true")
     p.add_argument("--episode_len",    type=int,   default=None)
     p.add_argument("--save_video",     action="store_true")
@@ -384,5 +400,4 @@ def parse_args():
 
 if __name__ == "__main__":
     main(parse_args())
-    import os as _os
-    _os.exit(0)
+    sys.exit(0)
