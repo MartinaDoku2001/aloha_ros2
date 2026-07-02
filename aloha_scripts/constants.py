@@ -20,6 +20,12 @@ TASK_CONFIGS = {
         'episode_len': 1400,
         'camera_names': ['camera_0', 'camera_1', 'camera_2', 'camera_3']
     },
+    'aloha_folding': {
+        'dataset_dir': DATA_DIR + '/aloha_folding',
+        'num_episodes': 85,
+        'episode_len': 1400,
+        'camera_names': ['camera_0', 'camera_1', 'camera_2', 'camera_3']
+    },
 }
 
 # ALOHA fixed constants

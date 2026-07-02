@@ -385,10 +385,7 @@ def parse_args():
     p.add_argument("--episode_len",  type=int, default=None)
     p.add_argument("--save_video",   action="store_true")
     p.add_argument("--video_dir", default="/workspace/aloha_mujoco_project/snn_aloha/eval_videos")
-    p.add_argument("--temporal_agg",   action="store_true")
-    p.add_argument("--episode_len",    type=int,   default=None)
-    p.add_argument("--save_video",     action="store_true")
-    p.add_argument("--video_dir",      default="./eval_videos")
+  
     p.add_argument("--done_threshold", type=float, default=0.9,
                    help="sigmoid(is_pad logit) threshold to declare episode done")
     p.add_argument("--done_patience",  type=int,   default=5,
