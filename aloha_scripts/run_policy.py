@@ -9,6 +9,13 @@ Usage (from repo root):
 
 Options:
     --temporal_agg      Use temporal aggregation (smoother, queries policy every step)
+    --query_frequency N Re-query the policy every N steps (default: inferred).
+                        With --temporal_agg this is forced to 1.
+                        Without it, defaults to num_queries (original behaviour).
+                        Set to e.g. 10-30 for smooth control without per-step inference.
+    --blend_chunks      Blend overlapping actions when re-querying (on by default when
+                        query_frequency < num_queries and temporal_agg is off).
+    --blend_type TYPE   'linear' (default) or 'exp' blending across the overlap region.
     --eval_ckpt NAME    Checkpoint filename inside ckpt_dir (default: policy_last.ckpt)
     --episode_len N     Override episode length from task config
     --save_video        Save first-camera video of each episode to --video_dir
@@ -128,17 +135,63 @@ def opening_ceremony(env):
     input()
 
 
-# ── Temporal aggregation ──────────────────────────────────────────────────────
+# ── Temporal aggregation (original, queries every step) ───────────────────────
 def temporal_agg_action(buffer: np.ndarray, t: int, k: float = 0.01) -> np.ndarray:
     """Average actions predicted for step t, weighting newer predictions higher."""
     col = buffer[:t + 1, t, :]
     populated = col[np.any(col != 0, axis=-1)]
     if len(populated) == 0:
         return col[-1]
-    # reverse so index -1 = newest → gets highest weight exp(-k*0)
     exp_w = np.exp(-k * np.arange(len(populated))[::-1])
     exp_w /= exp_w.sum()
     return (populated * exp_w[:, None]).sum(axis=0)
+
+
+# ── Chunk blending (new: works with any query_frequency) ─────────────────────
+def blend_overlapping_chunks(
+    old_chunk: np.ndarray,
+    new_chunk: np.ndarray,
+    old_offset: int,
+    blend_type: str = "linear",
+    exp_k: float = 5.0,
+) -> np.ndarray:
+    """
+    Blend the tail of the old chunk with the head of the new chunk.
+
+    Parameters
+    ----------
+    old_chunk  : (num_queries, action_dim) — previous policy output
+    new_chunk  : (num_queries, action_dim) — freshly queried policy output
+    old_offset : how many steps we already consumed from old_chunk
+                 (= query_frequency). The remaining old actions overlap with
+                 the start of new_chunk.
+    blend_type : "linear" or "exp"
+    exp_k      : steepness for exponential blend (only used if blend_type="exp")
+
+    Returns
+    -------
+    blended : (num_queries, action_dim) — new chunk with its first
+              `overlap_len` actions blended against the old tail.
+    """
+    num_queries = new_chunk.shape[0]
+    overlap_len = num_queries - old_offset      # how many old actions remain
+
+    if overlap_len <= 0:
+        return new_chunk.copy()
+
+    blended = new_chunk.copy()
+
+    for j in range(overlap_len):
+        if blend_type == "exp":
+            # w_new rises from ~0 → ~1 across the overlap
+            w_new = 1.0 - math.exp(-exp_k * j / max(overlap_len - 1, 1))
+        else:  # linear
+            w_new = j / max(overlap_len - 1, 1)
+
+        old_idx = old_offset + j              # index into old_chunk
+        blended[j] = (1.0 - w_new) * old_chunk[old_idx] + w_new * new_chunk[j]
+
+    return blended
 
 
 # ── Episode loop ──────────────────────────────────────────────────────────────
@@ -155,13 +208,10 @@ def _on_press(key):
 
 
 def run_one_episode(env, policy, stats, camera_names, episode_len,
-                    num_queries, temporal_agg, save_video,
+                    num_queries, temporal_agg, query_frequency,
+                    blend_chunks, blend_type, save_video,
                     done_threshold: float = 0.9, done_patience: int = 5,
                     done_min_steps: int = 50):
-    """
-    done_threshold : sigmoid(is_pad logit) must exceed this to count as done
-    done_patience  : how many consecutive done predictions before stopping
-    """
     global _break_episode
     _break_episode = False
 
@@ -170,7 +220,12 @@ def run_one_episode(env, policy, stats, camera_names, episode_len,
     action_mean = stats["action_mean"]
     action_std  = stats["action_std"]
 
-    query_frequency = 1 if temporal_agg else num_queries
+    # ── Mode selection ────────────────────────────────────────────────────
+    # 1) temporal_agg  → original behaviour, query every step, full buffer
+    # 2) blend_chunks  → query every query_frequency steps, blend overlaps
+    # 3) neither       → query every query_frequency steps, hard switch
+    if temporal_agg:
+        query_frequency = 1       # forced
 
     agg_buffer = None
     if temporal_agg:
@@ -178,15 +233,17 @@ def run_one_episode(env, policy, stats, camera_names, episode_len,
 
     video_frames = []
     dt_history   = []
-    action_chunk = None
-    is_pad_chunk = None   # [1, num_queries, 1] raw logits from latest query
-    done_streak  = 0      # consecutive steps predicted as "done"
+    action_chunk = None           # (1, num_queries, 14) tensor from policy
+    prev_chunk_np = None          # numpy copy of previous chunk for blending
+    current_actions = None        # (num_queries, 14) numpy — the actions we execute from
+    is_pad_chunk = None
+    done_streak  = 0
 
     listener = keyboard.Listener(on_press=_on_press)
     listener.start()
-    print(">> Press 'q' to end episode early. <<")
+    print(f">> query_frequency={query_frequency}  blend={blend_chunks}  "
+          f"blend_type={blend_type}  Press 'q' to end episode early. <<")
 
-    # get fresh observation without moving the robot
     ts = env.reset(fake=True)
 
     with torch.inference_mode():
@@ -196,7 +253,7 @@ def run_one_episode(env, policy, stats, camera_names, episode_len,
 
             t0 = time.time()
 
-            # ── Observe ──────────────────────────────────────────────────────
+            # ── Observe ──────────────────────────────────────────────────
             obs = ts.observation
             qpos_raw  = obs['qpos'].copy()
             qpos_norm = (qpos_raw - qpos_mean) / (qpos_std + 1e-8)
@@ -204,13 +261,11 @@ def run_one_episode(env, policy, stats, camera_names, episode_len,
             curr_image = images_to_tensor(obs['images'], camera_names)
 
             if save_video:
-                # Grab all cameras, convert BGR→RGB, tile into a grid
                 cam_imgs = []
                 for cam in camera_names:
                     img = obs['images'][cam].copy()
-                    img = img[:, :, ::-1]  # BGR → RGB
+                    img = img[:, :, ::-1]
                     cam_imgs.append(img)
-                # Tile: 2×2 grid if 4 cameras, horizontal strip otherwise
                 if len(cam_imgs) == 4:
                     top = np.concatenate(cam_imgs[:2], axis=1)
                     bot = np.concatenate(cam_imgs[2:], axis=1)
@@ -218,27 +273,42 @@ def run_one_episode(env, policy, stats, camera_names, episode_len,
                 else:
                     tiled = np.concatenate(cam_imgs, axis=1)
                 video_frames.append(tiled)
-            # ── Policy query ──────────────────────────────────────────────────
+
+            # ── Policy query ──────────────────────────────────────────────
             if t % query_frequency == 0:
                 out          = policy(qpos_t, curr_image)
                 action_chunk = out["action"] if isinstance(out, dict) else out
                 is_pad_chunk = out.get("is_pad") if isinstance(out, dict) else None
-                # shapes: action_chunk (1, num_queries, 14)
-                #         is_pad_chunk (1, num_queries, 1) raw logits
 
+                new_chunk_np = action_chunk[0, :, :14].cpu().numpy()
+
+                if temporal_agg:
+                    # Original temporal-agg path (unchanged)
+                    agg_buffer[t, t:t + num_queries] = new_chunk_np
+                elif blend_chunks and prev_chunk_np is not None:
+                    # Blend overlap between previous and new chunk
+                    current_actions = blend_overlapping_chunks(
+                        prev_chunk_np, new_chunk_np,
+                        old_offset=query_frequency,
+                        blend_type=blend_type,
+                    )
+                else:
+                    # Hard switch (no blending, or first chunk)
+                    current_actions = new_chunk_np
+
+                prev_chunk_np = new_chunk_np
+
+            # ── Pick action for this step ─────────────────────────────────
             if temporal_agg:
-                chunk_np = action_chunk[0, :, :14].cpu().numpy()
-                agg_buffer[t, t:t + num_queries] = chunk_np
                 raw_action = temporal_agg_action(agg_buffer, t)
-                # With temporal agg we query every step; step index in chunk = 0
                 pad_logit = is_pad_chunk[0, 0, 0].item() if is_pad_chunk is not None else -999
             else:
                 step_in_chunk = t % query_frequency
-                raw_action = action_chunk[0, step_in_chunk, :14].cpu().numpy()
+                raw_action = current_actions[step_in_chunk]
                 pad_logit = is_pad_chunk[0, step_in_chunk, 0].item() if is_pad_chunk is not None else -999
 
-            # ── Episode-done detection ────────────────────────────────────────
-            pad_prob = 1.0 / (1.0 + math.exp(-pad_logit))  # sigmoid
+            # ── Episode-done detection ────────────────────────────────────
+            pad_prob = 1.0 / (1.0 + math.exp(-pad_logit))
             if t >= done_min_steps and pad_prob > done_threshold:
                 done_streak += 1
                 if done_streak >= done_patience:
@@ -248,7 +318,7 @@ def run_one_episode(env, policy, stats, camera_names, episode_len,
             else:
                 done_streak = 0
 
-            # ── Denormalize and apply ─────────────────────────────────────────
+            # ── Denormalize and apply ─────────────────────────────────────
             action = raw_action * action_std[:14] + action_mean[:14]
 
             if t % 30 == 0:
@@ -256,8 +326,6 @@ def run_one_episode(env, policy, stats, camera_names, episode_len,
                       f"  shoulder_L={action[1]:.3f}  elbow_L={action[2]:.3f}"
                       f"  pad_prob={pad_prob:.2f}")
 
-            # env.step() takes 14-dim master-convention action and handles the
-            # shoulder/elbow sign flip for the puppet bots internally.
             ts = env.step(action)
 
             elapsed = time.time() - t0
@@ -281,6 +349,19 @@ def main(args):
     temporal_agg = args.temporal_agg or run_config.get("temporal_agg", False)
     num_queries  = run_config["policy_config"].get("num_queries", 100)
 
+    # Determine query frequency
+    if args.query_frequency is not None:
+        query_frequency = args.query_frequency
+    elif temporal_agg:
+        query_frequency = 1
+    else:
+        query_frequency = num_queries   # original default: execute full chunk
+
+    # Auto-enable blending when query_frequency < num_queries and not using temporal_agg
+    blend_chunks = args.blend_chunks
+    if blend_chunks is None:
+        blend_chunks = (query_frequency < num_queries) and (not temporal_agg)
+
     if task_name not in TASK_CONFIGS:
         raise KeyError(f"Task '{task_name}' not in TASK_CONFIGS. "
                        f"Available: {list(TASK_CONFIGS.keys())}")
@@ -288,11 +369,13 @@ def main(args):
     camera_names = task_cfg["camera_names"]
     episode_len  = args.episode_len or task_cfg["episode_len"]
 
-    print(f"\nTask:         {task_name}")
-    print(f"Episode len:  {episode_len}")
-    print(f"Num queries:  {num_queries}")
-    print(f"Temporal agg: {temporal_agg}")
-    print(f"Cameras:      {camera_names}\n")
+    print(f"\nTask:            {task_name}")
+    print(f"Episode len:     {episode_len}")
+    print(f"Num queries:     {num_queries}")
+    print(f"Query frequency: {query_frequency}")
+    print(f"Temporal agg:    {temporal_agg}")
+    print(f"Blend chunks:    {blend_chunks}  (type={args.blend_type})")
+    print(f"Cameras:         {camera_names}\n")
 
     policy.cuda()
     policy.eval()
@@ -333,6 +416,9 @@ def main(args):
             video_frames = run_one_episode(
                 env, policy, stats, camera_names,
                 episode_len, num_queries, temporal_agg,
+                query_frequency=query_frequency,
+                blend_chunks=blend_chunks,
+                blend_type=args.blend_type,
                 save_video=args.save_video,
                 done_threshold=args.done_threshold,
                 done_patience=args.done_patience,
@@ -382,10 +468,20 @@ def parse_args():
     p.add_argument("--eval_ckpt",    default=None,
                    help="Checkpoint filename (default: policy_last.ckpt)")
     p.add_argument("--temporal_agg", action="store_true")
+    p.add_argument("--query_frequency", type=int, default=None,
+                   help="Re-query the policy every N steps. "
+                        "Defaults to 1 with --temporal_agg, num_queries otherwise. "
+                        "Try 10-30 for a good speed/smoothness trade-off.")
+    p.add_argument("--blend_chunks", type=lambda v: v.lower() in ('true','1','yes'),
+                   default=None,
+                   help="Blend overlapping action chunks at re-query boundaries. "
+                        "Auto-enabled when query_frequency < num_queries.")
+    p.add_argument("--blend_type",   default="linear", choices=["linear", "exp"],
+                   help="Blending curve across the overlap region.")
     p.add_argument("--episode_len",  type=int, default=None)
     p.add_argument("--save_video",   action="store_true")
     p.add_argument("--video_dir", default="/workspace/aloha_mujoco_project/snn_aloha/eval_videos")
-  
+
     p.add_argument("--done_threshold", type=float, default=0.9,
                    help="sigmoid(is_pad logit) threshold to declare episode done")
     p.add_argument("--done_patience",  type=int,   default=5,
