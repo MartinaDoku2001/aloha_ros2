@@ -8,6 +8,12 @@ TASK_CONFIGS = {
         'episode_len': 600,
         'camera_names': ['camera_0', 'camera_1', 'camera_2', 'camera_3']
     },
+    'aloha_pass_strawberry_0_mixed': {
+        'dataset_dir': DATA_DIR + '/aloha_pass_strawberry_0',
+        'num_episodes': 85,
+        'episode_len': 600,
+        'camera_names': ['camera_0', 'camera_1', 'camera_2', 'camera_3']
+    },
     'aloha_pass_strawberry_1': {
         'dataset_dir': DATA_DIR + '/aloha_pass_strawberry_1',
         'num_episodes': 85,
